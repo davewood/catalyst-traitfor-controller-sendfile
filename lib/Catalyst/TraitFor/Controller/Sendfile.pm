@@ -63,10 +63,10 @@ sub sendfile {
   if (defined $ext) {
     $c->res->content_type( $self->_mime_types->mimeTypeOf($ext) );
 
-    my $abs_file = $c->path_to('root', $file);
-    warn $abs_file;
-    my $file_stats = stat($abs_file);
-    $c->res->content_length( $file_stats->size ) if $file_stats;
+    # the content length is supposedly set by apache with mod_xsendfile
+    #my $abs_file = $c->path_to('root', $file);
+    #my $file_stats = stat($file);
+    #$c->res->content_length( $file_stats->size ) if $file_stats;
   }
   $c->res->status(200);
   #$c->res->body("foo"); # MASSIVE HACK: bypass RenderView

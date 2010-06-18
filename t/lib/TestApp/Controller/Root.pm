@@ -2,6 +2,7 @@ package TestApp::Controller::Root;
 
 use Moose;
 use namespace::autoclean;
+use FindBin;
 
 BEGIN {
     extends 'Catalyst::Controller';
@@ -12,7 +13,7 @@ __PACKAGE__->config(namespace => '');
 
 sub default : Path {
     my ($self, $c) = @_;
-    $self->sendfile($c, '/static/image.png');
+    $self->sendfile($c, "$FindBin::Bin/lib/image.png");
 }
 
 __PACKAGE__->meta->make_immutable;
