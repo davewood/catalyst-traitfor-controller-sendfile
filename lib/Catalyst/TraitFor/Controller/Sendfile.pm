@@ -14,6 +14,7 @@ Catalyst::TraitFor::Controller::Sendfile - convenience method to send files with
 
     package MyApp::Controller::Foo;
     use Moose;
+    use Path::Class;
     use namespace::clean;
     BEGIN {
         extends 'Catalyst::Controller';
@@ -23,7 +24,7 @@ Catalyst::TraitFor::Controller::Sendfile - convenience method to send files with
 
     sub some_action : Local {
         my ($self, $c) = @_;
-        $c->sendfile($c, '/path/to/file');
+        $self->sendfile($c, Path::Class::File->new(qw/ path to file));
     }
 
 =head1 DESCRIPTION
@@ -38,7 +39,7 @@ name of the Sendfile header. Probably 'X-Sendfile' or 'X-Accel-Redirect'. Defaul
 
 =head2 sendfile
 
-You call sendfile with $c and an absolute path on your filesystem to the file you want to send. This path can't be seen by the client. Your webserver should check if the 'X-Sendfile' header is set and if so deliver the file.
+You call sendfile with $c and a Path::Class::File object. The file path can't be seen by the client. Your webserver should check if the 'X-Sendfile' header is set and if so deliver the file.
 
 =cut
 
@@ -61,7 +62,7 @@ has '_mime_types' => (
 sub sendfile {
     my ($self, $c, $file) = @_;
 
-    my ($ext) = $file =~ /\.(.+?)$/;
+    my ($ext) = $file->basename =~ /\.(.+?)$/;
     if (defined $ext) {
         $c->res->content_type( $self->_mime_types->mimeTypeOf($ext) );
     }
@@ -70,17 +71,19 @@ sub sendfile {
 
     # Catalyst development server
     if ( $engine =~ /^HTTP/ ) {
-        use Path::Class qw/ file /;
-        my $file_obj = Path::Class::File->new($file);
-        if ( $file_obj->stat && -f _ && -r _ ) {
-            $c->res->body( $file_obj->openr );
-            $c->res->content_length( $file_obj->stat->size );
+        if ( $file->stat && -f _ && -r _ ) {
+            $c->res->body( $file->openr );
+            $c->res->content_length( $file->stat->size );
         }
     } 
 
     # Deployment with FastCGI
     elsif ( $engine eq 'FastCGI' ) {
         $c->res->header($self->sendfile_header, $file);
+
+        # will be removed once RenderView checks for
+        # defined($c->response->body) rather then 
+        # defined $c->response->body && length( $c->response->body );
         $c->res->body("foo"); # MASSIVE HACK: bypass RenderView
     }
 
