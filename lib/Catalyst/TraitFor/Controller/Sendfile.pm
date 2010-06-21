@@ -36,6 +36,10 @@ If you want to deliver files using headers like 'X-Sendfile' or 'X-Accel-Redirec
 
 name of the Sendfile header. Probably 'X-Sendfile' or 'X-Accel-Redirect'. Default is 'X-Sendfile'
 
+=head2 sendfile
+
+You call sendfile with $c and an absolute path on your filesystem to the file you want to send. This path can't be seen by the client. Your webserver should check if the 'X-Sendfile' header is set and if so deliver the file.
+
 =cut
 
 has sendfile_header => (
@@ -46,42 +50,48 @@ has sendfile_header => (
 
 use MIME::Types;
 has '_mime_types' => (
-  is => 'ro',
-  default => sub {
-    my $mime = MIME::Types->new( only_complete => 1 );
-    $mime->create_type_index;
-    $mime;
-  }
+    is => 'ro',
+    default => sub {
+        my $mime = MIME::Types->new( only_complete => 1 );
+        $mime->create_type_index;
+        $mime;
+    }
 );
 
-use File::stat;
 sub sendfile {
-  my ($self, $c, $file) = @_;
+    my ($self, $c, $file) = @_;
 
-  $c->res->header($self->sendfile_header, $file);
-  my ($ext) = $file =~ /\.(.+?)$/;
-  if (defined $ext) {
-    $c->res->content_type( $self->_mime_types->mimeTypeOf($ext) );
+    my ($ext) = $file =~ /\.(.+?)$/;
+    if (defined $ext) {
+        $c->res->content_type( $self->_mime_types->mimeTypeOf($ext) );
+    }
 
-    # the content length is supposedly set by apache with mod_xsendfile
-    #my $abs_file = $c->path_to('root', $file);
-    #my $file_stats = stat($file);
-    #$c->res->content_length( $file_stats->size ) if $file_stats;
-  }
-  $c->res->status(200);
-  #$c->res->body("foo"); # MASSIVE HACK: bypass RenderView
-  $c->detach;
+    my $engine = $ENV{CATALYST_ENGINE} || '';
+
+    # Catalyst development server
+    if ( $engine =~ /^HTTP/ ) {
+        use Path::Class qw/ file /;
+        my $file_obj = Path::Class::File->new($file);
+        if ( $file_obj->stat && -f _ && -r _ ) {
+            $c->res->body( $file_obj->openr );
+            $c->res->content_length( $file_obj->stat->size );
+        }
+    } 
+
+    # Deployment with FastCGI
+    elsif ( $engine eq 'FastCGI' ) {
+        $c->res->header($self->sendfile_header, $file);
+        $c->res->body("foo"); # MASSIVE HACK: bypass RenderView
+    }
+
+    # unknown engine
+    else {
+        die "Unknown engine: " . $engine;
+    }
+
+    $c->res->status(200);
+    $c->detach;
 }
-
-# Massive Hack II: Electric Boogaloo
-#before finalize_headers => sub {
-#  my ($c) = @_;
-#  my $res = $c->res;
-#
-#  if (defined $res->header('X-SendFile')) {
-#    $res->body('');
-#  }
-#};
 
 1;
 
