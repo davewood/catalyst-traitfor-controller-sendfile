@@ -7,6 +7,8 @@ use FindBin;
 use lib "$FindBin::Bin/lib";
 use Path::Class;
 
+$ENV{CATALYST_ENGINE} = 'HTTP';
+
 use Catalyst::Test 'TestApp';
 
 {

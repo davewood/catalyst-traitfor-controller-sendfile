@@ -15,7 +15,7 @@ SYNOPSIS
 
         sub some_action : Local {
             my ($self, $c) = @_;
-            $self->sendfile($c, Path::Class::File->new(qw/ path to file));
+            $self->sendfile($c, Path::Class::File->new(qw/ path to file/);
         }
 
 DESCRIPTION
