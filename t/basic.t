@@ -17,6 +17,7 @@ use Catalyst::Test 'TestApp';
     ok( $response->is_success, 'Response Successful 2xx' );
     is( $response->header( 'X-Sendfile' ), Path::Class::File->new("$FindBin::Bin/lib/image.png"), 'Sendfile Header' );
     is( $response->header( 'Content-Type' ), 'image/png', 'Content Type' );
+    is ( $response->content, '', 'No response content' );
 }
 
 {
@@ -26,6 +27,7 @@ use Catalyst::Test 'TestApp';
     ok( $response->is_success, 'Response Successful 2xx' );
     is( $response->header( 'Content-Length' ), 81, 'Content Length' );
     is( $response->header( 'Content-Type' ), 'image/png', 'Content Type' );
+    ok length($response->content), 'Response has content';
 }
 
 done_testing;

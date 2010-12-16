@@ -5,17 +5,17 @@ NAME
 SYNOPSIS
         package MyApp::Controller::Foo;
         use Moose;
-        use Path::Class;
-        use namespace::clean;
-        BEGIN {
-            extends 'Catalyst::Controller';
-            with 'Catalyst::TraitFor::Controller::Sendfile';
-        }
+        use Path::Class qw/ file /;
+        use namespace::autoclean;
+
+        BEGIN { extends 'Catalyst::Controller' }
+        with 'Catalyst::TraitFor::Controller::Sendfile';
+
         __PACKAGE__->config(sendfile_header => 'X-Sendfile');
 
         sub some_action : Local {
             my ($self, $c) = @_;
-            $self->sendfile($c, Path::Class::File->new(qw/ path to file/);
+            $self->sendfile($c, file(qw/ path to file/));
         }
 
 DESCRIPTION
@@ -23,9 +23,10 @@ DESCRIPTION
     'X-Accel-Redirect' you can apply this trait and use its convenience
     method sendfile.
 
+ATTRIBUTES
   sendfile_header
-    name of the Sendfile header. Probably 'X-Sendfile' or
-    'X-Accel-Redirect'. Default is 'X-Sendfile'
+    name of the Sendfile header. Defaults to X-Sendfile (apache mod_sendfile
+    and lighttpd), or should be changed to 'X-Accel-Redirect' for nginx
 
   sendfile
     You call sendfile with $c and a Path::Class::File object. The file path
@@ -37,7 +38,12 @@ AUTHORS
 
     Florian Ragwitz "<rafl@debian.org>"
 
+    Tomas Doran (t0m) "<bobtfish@bobtfish.net>"
+
 COPYRIGHT
+    Copyright (c) 2010, the above named authors.
+
+LICENSE
     This library is free software. You can redistribute it and/or modify it
     under the same terms as Perl itself.
 

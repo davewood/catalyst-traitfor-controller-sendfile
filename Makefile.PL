@@ -5,10 +5,12 @@ use inc::Module::Install 0.99;
 name 'Catalyst-TraitFor-Controller-Sendfile';
 all_from 'lib/Catalyst/TraitFor/Controller/Sendfile.pm';
 
-requires 'Catalyst::Runtime' => '5.80';
+requires 'Catalyst::Runtime' => '5.80030';
 requires 'Moose';
 requires 'MooseX::Types::Path::Class';
 requires 'namespace::autoclean';
+requires 'MIME::Types';
+requires 'Method::Signatures::Simple';
 
 test_requires 'Test::More' => '0.88';
 test_requires 'HTTP::Request::Common';
