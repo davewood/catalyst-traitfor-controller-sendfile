@@ -1,6 +1,7 @@
 package Catalyst::TraitFor::Controller::Sendfile;
 
 use Moose::Role;
+use MooseX::Types::Path::Class qw/ File /;
 use namespace::autoclean;
 
 our $VERSION = '0.01';
@@ -24,7 +25,7 @@ Catalyst::TraitFor::Controller::Sendfile - convenience method to send files with
 
     sub some_action : Local {
         my ($self, $c) = @_;
-        $self->sendfile($c, Path::Class::File->new(qw/ path to file));
+        $self->sendfile($c, Path::Class::File->new(qw/ path to file/);
     }
 
 =head1 DESCRIPTION
@@ -61,6 +62,10 @@ has '_mime_types' => (
 
 sub sendfile {
     my ($self, $c, $file) = @_;
+
+    die("No file supplied to sendfile with") unless($file);
+    my $file_ob = to_File($file);
+    die("Not supplied with a Path::Class::File or something that can be coerced to be one ($file)") unless $file = $file_ob;
 
     my ($ext) = $file->basename =~ /\.(.+?)$/;
     if (defined $ext) {

@@ -7,6 +7,7 @@ all_from 'lib/Catalyst/TraitFor/Controller/Sendfile.pm';
 
 requires 'Catalyst::Runtime' => '5.80';
 requires 'Moose';
+requires 'MooseX::Types::Path::Class';
 requires 'namespace::autoclean';
 
 test_requires => 'Test::More' => '0.88';
