@@ -10,7 +10,8 @@ requires 'Moose';
 requires 'MooseX::Types::Path::Class';
 requires 'namespace::autoclean';
 
-test_requires => 'Test::More' => '0.88';
+test_requires 'Test::More' => '0.88';
+test_requires 'HTTP::Request::Common';
 
 system("pod2text lib/Catalyst/TraitFor/Controller/Sendfile.pm > README")
     if $Module::Install::AUTHOR;

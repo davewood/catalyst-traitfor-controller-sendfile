@@ -7,17 +7,25 @@ use FindBin;
 use lib "$FindBin::Bin/lib";
 use Path::Class;
 
-$ENV{CATALYST_ENGINE} = 'HTTP';
 
 use Catalyst::Test 'TestApp';
 
 {
+    local $ENV{CATALYST_ENGINE} = 'FastCGI';
     my $response = request(GET '/');
     ok( $response, 'Request' );
     ok( $response->is_success, 'Response Successful 2xx' );
     is( $response->header( 'X-Sendfile' ), Path::Class::File->new("$FindBin::Bin/lib/image.png"), 'Sendfile Header' );
     is( $response->header( 'Content-Type' ), 'image/png', 'Content Type' );
+}
+
+{
+    local $ENV{CATALYST_ENGINE} = 'HTTP';
+    my $response = request(GET '/');
+    ok( $response, 'Request' );
+    ok( $response->is_success, 'Response Successful 2xx' );
     is( $response->header( 'Content-Length' ), 81, 'Content Length' );
+    is( $response->header( 'Content-Type' ), 'image/png', 'Content Type' );
 }
 
 done_testing;
