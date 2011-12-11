@@ -7,12 +7,7 @@ use MIME::Types;
 use Method::Signatures::Simple;
 use namespace::autoclean;
 
-our $VERSION = '0.01';
-$VERSION = eval $VERSION;
-
-=head1 NAME
-
-Catalyst::TraitFor::Controller::Sendfile - convenience method to send files with X-Sendfile, X-Accel-Redirect, ...
+# ABSTRACT: convenience method to send files with X-Sendfile, X-Accel-Redirect, ...
 
 =head1 SYNOPSIS
 
@@ -36,19 +31,12 @@ Catalyst::TraitFor::Controller::Sendfile - convenience method to send files with
 If you want to deliver files using headers like 'X-Sendfile'
 or 'X-Accel-Redirect' you can apply this trait and use its convenience method sendfile.
 
-=cut
-
 =head1 ATTRIBUTES
 
 =head2 sendfile_header
 
 name of the Sendfile header. Defaults to X-Sendfile (apache mod_sendfile and lighttpd),
 or should be changed to 'X-Accel-Redirect' for nginx
-
-=head2 sendfile
-
-You call sendfile with $c and a Path::Class::File object. The file path can't be seen
-by the client. Your webserver should check if the 'X-Sendfile' header is set and if so deliver the file.
 
 =cut
 
@@ -57,6 +45,10 @@ has sendfile_header => (
     isa      => Str,
     default  => 'X-Sendfile',
 );
+
+=head2 _mime_types
+
+=cut
 
 has '_mime_types' => (
     is => 'ro',
@@ -67,6 +59,12 @@ has '_mime_types' => (
     }
 );
 
+=head1 METHODS
+
+=head2 set_content_type_for_file
+
+=cut
+
 method set_content_type_for_file ($c, $file) {
     my ($ext) = $file->basename =~ /\.(.+?)$/;
     if (defined $ext) {
@@ -74,9 +72,15 @@ method set_content_type_for_file ($c, $file) {
     }
 }
 
-method sendfile ($c, $file) {
+=head2 sendfile
 
-    die("No file supplied to sendfile with") unless($file);
+You call sendfile with $c and a Path::Class::File object. The file path can't be seen
+by the client. Your webserver should check if the 'X-Sendfile' header is set and if so deliver the file.
+
+=cut
+
+method sendfile ($c, $file) {
+    die("No file supplied to sendfile with") unless $file;
     my $file_ob = to_File($file);
     die("Not supplied with a Path::Class::File or something that can be coerced to be one ($file)") unless $file = $file_ob;
 
@@ -95,7 +99,6 @@ method sendfile ($c, $file) {
     # Deployment with FastCGI
     elsif ( $engine eq 'FastCGI' ) {
         $c->res->header($self->sendfile_header, $file);
-
         $c->res->body( '' );
     }
 
@@ -109,23 +112,3 @@ method sendfile ($c, $file) {
 }
 
 1;
-
-=head1 AUTHORS
-
-David Schmidt (davewood) C<< <davewood@gmx.at> >>
-
-Florian Ragwitz C<< <rafl@debian.org> >>
-
-Tomas Doran (t0m) C<< <bobtfish@bobtfish.net> >>
-
-=head1 COPYRIGHT
-
-Copyright (c) 2010, the above named authors.
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify it under
-the same terms as Perl itself.
-
-=cut
-
