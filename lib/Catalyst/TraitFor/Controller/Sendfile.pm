@@ -48,6 +48,8 @@ has sendfile_header => (
 
 =head2 _mime_types
 
+data structure used to look up the mime type for file extensions
+
 =cut
 
 has '_mime_types' => (
@@ -68,7 +70,13 @@ has '_mime_types' => (
 method set_content_type_for_file ($c, $file) {
     my ($ext) = $file->basename =~ /\.(.+?)$/;
     if (defined $ext) {
-        $c->res->content_type($self->_mime_types->mimeTypeOf($ext));
+        my $content_type = $self->_mime_types->mimeTypeOf($ext);
+        if (defined $content_type) {
+            $c->res->content_type($content_type);
+        }
+        else {
+            die("No content-type found for '$ext'");
+        }
     }
 }
 
