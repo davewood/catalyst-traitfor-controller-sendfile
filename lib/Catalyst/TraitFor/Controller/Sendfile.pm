@@ -23,7 +23,7 @@ use namespace::autoclean;
 
     sub some_action : Local {
         my ($self, $c) = @_;
-        $self->sendfile($c, file(qw/ path to file/));
+        $self->sendfile($c, file(qw/ path to file/), 'image/jpeg');
     }
 
 =head1 DESCRIPTION
@@ -67,32 +67,41 @@ has '_mime_types' => (
 
 =cut
 
-method set_content_type_for_file ($c, $file) {
-    my ($ext) = $file->basename =~ /\.(.+?)$/;
-    if (defined $ext) {
-        my $content_type = $self->_mime_types->mimeTypeOf($ext);
-        if (defined $content_type) {
-            $c->res->content_type($content_type);
-        }
-        else {
-            die("No content-type found for '$ext'");
-        }
+method set_content_type_for_file ($c, $file, $content_type) {
+    if (!$content_type) {
+        my ($ext) = $file->basename =~ /\.(.+?)$/;
+
+        die "Could not find file extension. (" . $file->basename . ")"
+            unless defined $ext;
+
+        $content_type = $self->_mime_types->mimeTypeOf($ext);
+
+        die "No content-type found for '$ext'"
+            unless defined $content_type;
     }
+
+    die "No content-type found. (" . $file->basename . ")"
+        unless defined $content_type;
+
+    $c->res->content_type($content_type);
 }
 
 =head2 sendfile
 
-You call sendfile with $c and a Path::Class::File object. The file path can't be seen
-by the client. Your webserver should check if the 'X-Sendfile' header is set and if so deliver the file.
+You call sendfile with $c, Path::Class::File object and an optional content_type.
+The file path can't be seen by the client.
+Your webserver should check if the 'X-Sendfile' header is set and if so deliver the file.
+If you do not define a content_type it will be guessed by the file extension.
 
 =cut
 
-method sendfile ($c, $file) {
-    die("No file supplied to sendfile with") unless $file;
+method sendfile ($c, $file, $content_type) {
+    die "No file supplied to sendfile with" unless $file;
     my $file_ob = to_File($file);
-    die("Not supplied with a Path::Class::File or something that can be coerced to be one ($file)") unless $file = $file_ob;
+    die "Not supplied with a Path::Class::File or something that can be coerced to be one ($file)"
+        unless $file = $file_ob;
 
-    $self->set_content_type_for_file($c, $file);
+    $content_type = $self->set_content_type_for_file($c, $file, $content_type);
 
     my $engine = $ENV{CATALYST_ENGINE} || 'HTTP';
 

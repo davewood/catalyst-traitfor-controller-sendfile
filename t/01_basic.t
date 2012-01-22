@@ -2,13 +2,19 @@ use strict;
 use warnings;
 use Test::More;
 use HTTP::Request::Common;
-
 use FindBin;
 use lib "$FindBin::Bin/lib";
 use Path::Class;
-
-
 use Catalyst::Test 'TestApp';
+
+BEGIN { use_ok('TestApp'); }
+
+my $testapp = new_ok ( 'TestApp' );
+
+{
+    my $controller = $testapp->controller('Root');
+    can_ok ( $controller, 'sendfile' );
+}
 
 {
     local $ENV{CATALYST_ENGINE} = 'FastCGI';
@@ -31,4 +37,3 @@ use Catalyst::Test 'TestApp';
 }
 
 done_testing;
-
